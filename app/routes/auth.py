@@ -13,7 +13,7 @@ auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit('5/hour;2/10minutes', override_defaults=False)
+@limiter.limit('5/hour;3/10minutes', override_defaults=True, methods=['POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -32,7 +32,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit('10/hour;5/15minutes', override_defaults=False)
+@limiter.limit('10/hour;5/15minutes', override_defaults=True, methods=['POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -114,7 +114,6 @@ def settings():
 # ─── Google OAuth ─────────────────────────────────────────────────────
 
 @auth_bp.route('/google/login')
-@limiter.limit('10/hour;5/15minutes', override_defaults=False)
 def google_login():
     """Initiate Google OAuth 2.0 login flow."""
     if current_user.is_authenticated:
@@ -130,7 +129,7 @@ def google_login():
 
 
 @auth_bp.route('/google/callback')
-@limiter.limit('20/hour;10/30minutes', override_defaults=False)
+@limiter.limit('20/hour;10/30minutes', override_defaults=True, methods=['GET'])
 def google_callback():
     """Handle the OAuth callback from Google."""
     try:
