@@ -1,5 +1,5 @@
 """Subscription routes — email newsletter subscribe/unsubscribe."""
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from app import db
 from app.models import NewsletterSubscription
 from app.forms import SubscribeForm
@@ -30,12 +30,21 @@ def subscribe():
             db.session.add(sub)
             db.session.commit()
 
-        # Send welcome email in background
-        try:
-            from app.services.email_service import send_welcome_email
-            send_welcome_email(email)
-        except Exception:
-            pass  # Non-blocking
+        # Send welcome email in a background thread (with app context for SMTP config)
+        import threading
+        _app = current_app._get_current_object()
+
+        def _send_welcome_async(app, subscriber_email):
+            with app.app_context():
+                try:
+                    from app.services.email_service import send_welcome_email
+                    send_welcome_email(subscriber_email)
+                except Exception:
+                    pass
+
+        threading.Thread(
+            target=_send_welcome_async, args=(_app, email), daemon=True
+        ).start()
 
         flash('Successfully subscribed to CodeLab News!', 'success')
         return redirect(url_for('subscribe.subscribe'))

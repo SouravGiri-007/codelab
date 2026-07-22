@@ -76,6 +76,9 @@ class Config:
         ('llama-3.1-70b-versatile', 'Llama 3.1 70B Versatile'),
     ]
     
+    # ─── Site URL (used in emails for unsubscribe links, etc.) ────
+    SITE_URL = os.environ.get('SITE_URL', 'http://localhost:5000')
+
     # ─── Email (Resend — placeholder) ─────────────────────────────
     # RESEND_API_KEY is available for future use if needed.
 

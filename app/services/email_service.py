@@ -12,6 +12,11 @@ from app.models import NewsletterSubscription
 logger = logging.getLogger(__name__)
 
 
+def _site_url() -> str:
+    """Get the base site URL from config, stripping trailing slash."""
+    return current_app.config.get('SITE_URL', 'http://localhost:5000').rstrip('/')
+
+
 def send_email(to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
     """
     Reusable helper function to send emails using SMTP with TLS encryption.
@@ -50,15 +55,15 @@ def send_email(to_email: str, subject: str, html_body: str, text_body: Optional[
     message.attach(MIMEText(html_body, "html", "utf-8"))
 
     try:
-        # Connect to server and initiate connection upgrades via TLS
-        server = smtplib.SMTP(server_host, port)
+        # Connect to server with a short timeout so failures don't hang requests
+        server = smtplib.SMTP(server_host, port, timeout=10)
         server.starttls()
         server.login(username, password)
         server.send_message(message)
         server.quit()
         return True
     except Exception as e:
-        logger.error(f"SMTP error while sending email to {to_email}: {e}")
+        logger.warning(f"SMTP error while sending email to {to_email}: {e}")
         return False
 
 
@@ -70,6 +75,7 @@ def send_welcome_email(email: str) -> bool:
         email: The recipient subscriber's email address string.
     """
     subject = "Welcome to CodeLab News!"
+    base_url = _site_url()
     html_content = f'''
     <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#1e293b;">
         <div style="background:#6366f1;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
@@ -85,7 +91,7 @@ def send_welcome_email(email: str) -> bool:
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
             <p style="font-size:13px;color:#94a3b8;text-align:center;">
                 You received this because you subscribed on CodeLab.<br>
-                <a href="http://localhost:5000/subscribe/unsubscribe?email={email}" style="color:#6366f1;">Unsubscribe</a>
+                <a href="{base_url}/subscribe/unsubscribe?email={email}" style="color:#6366f1;">Unsubscribe</a>
             </p>
         </div>
     </div>
@@ -141,6 +147,8 @@ def send_news_notifications(articles: List[Dict[str, Any]]) -> None:
         </div>
         '''
 
+    base_url = _site_url()
+
     email_html = f'''
     <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#1e293b;">
         <div style="background:#6366f1;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
@@ -152,7 +160,7 @@ def send_news_notifications(articles: List[Dict[str, Any]]) -> None:
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
             <p style="font-size:13px;color:#94a3b8;text-align:center;">
                 Brought to you by CodeLab — Code Snippet Sharing & Playground<br>
-                <a href="http://localhost:5000/news" style="color:#6366f1;">View all news on CodeLab</a>
+                <a href="{base_url}/news" style="color:#6366f1;">View all news on CodeLab</a>
             </p>
         </div>
     </div>
@@ -166,7 +174,7 @@ def send_news_notifications(articles: List[Dict[str, Any]]) -> None:
         personalized_html = email_html + f'''
         <div style="padding:0 24px 24px;background:#f8fafc;border-radius:0 0 8px 8px;border:1px solid #e2e8f0;border-top:none;margin-top:-24px;text-align:center;">
             <p style="font-size:13px;color:#94a3b8;margin:0;">
-                <a href="http://localhost:5000/subscribe/unsubscribe?email={sub.email}" style="color:#6366f1;">Unsubscribe from this list</a>
+                <a href="{base_url}/subscribe/unsubscribe?email={sub.email}" style="color:#6366f1;">Unsubscribe from this list</a>
             </p>
         </div>
         '''
