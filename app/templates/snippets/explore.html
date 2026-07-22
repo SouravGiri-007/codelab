@@ -122,4 +122,40 @@
         {% endif %}
     </div>
 </div>
+
+{% if recent_news %}
+<!-- Latest Tech News Section -->
+<div class="news-on-explore">
+    <div class="section-header">
+        <h2 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;">
+                <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9h2"/>
+                <path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>
+            </svg>
+            Latest Tech News
+        </h2>
+        <a href="{{ url_for('news.news_list') }}" class="btn btn-sm btn-outline">View All News &rarr;</a>
+    </div>
+    <div class="news-grid">
+        {% for article in recent_news %}
+        <a href="{{ article.source_url }}" target="_blank" rel="noopener" class="news-card">
+            <div class="news-card-source news-source-{{ article.source }}">{{ article.source|title }}</div>
+            <h3 class="news-card-title">{{ article.title }}</h3>
+            {% if article.summary %}
+            <p class="news-card-summary">{{ article.summary|truncate(150) }}</p>
+            {% endif %}
+            <div class="news-card-footer">
+                <span class="news-card-time">{{ time_ago(article.created_at) }}</span>
+                <span class="news-card-upvotes">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                    </svg>
+                    {{ article.upvotes }}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

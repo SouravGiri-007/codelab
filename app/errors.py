@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
 from werkzeug.exceptions import NotFound, Forbidden
+from flask_wtf.csrf import CSRFError
 
 errors = Blueprint('errors', __name__)
 
@@ -35,4 +36,14 @@ def request_entity_too_large(error):
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
         return _api_error('Request too large', 413)
     flash('Your submission is too large. Please reduce the content size.', 'danger')
+    return redirect(request.referrer or url_for('main.index'))
+
+
+@errors.app_errorhandler(CSRFError)
+def csrf_error(error):
+    """Handle CSRF token validation failures gracefully."""
+    current_app.logger.warning(f'CSRF validation failed: {error.description}')
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        return _api_error('Session expired. Please refresh and try again.', 400)
+    flash('Your session has expired. Please try again.', 'danger')
     return redirect(request.referrer or url_for('main.index'))

@@ -3,7 +3,7 @@ from flask import (Blueprint, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.forms import SnippetForm, CommentForm
-from app.models import User, Snippet, Tag, Comment, Like, SavedSnippet, tag_association
+from app.models import User, Snippet, Tag, Comment, Like, SavedSnippet, tag_association, NewsArticle
 from app.utils import parse_tags, slugify, language_label, time_ago
 from app.config import Config
 from sqlalchemy import or_
@@ -78,11 +78,22 @@ def index():
         db.func.count(Snippet.id).desc()
     ).all()
 
+    # Get recent news articles for the explore page
+    try:
+        recent_news = NewsArticle.query.filter_by(
+            is_published=True
+        ).order_by(
+            NewsArticle.created_at.desc()
+        ).limit(6).all()
+    except Exception:
+        recent_news = []
+
     return render_template('snippets/explore.html',
                            snippets=snippets,
                            popular_tags=popular_tags,
                            lang_counts=lang_counts,
-                           search=search, lang=lang, tag=tag, sort=sort)
+                           search=search, lang=lang, tag=tag, sort=sort,
+                           recent_news=recent_news)
 
 
 # ─── Snippet Detail ─────────────────────────────────────────────────

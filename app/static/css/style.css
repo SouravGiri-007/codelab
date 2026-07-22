@@ -1233,6 +1233,143 @@ a:hover { text-decoration: underline; }
 }
 .setting-row:last-child { border-bottom: none; }
 
+/* ─── News on Explore Page ──────────────────────────────────── */
+.news-on-explore {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-outline:hover {
+    background: var(--accent-light);
+    color: var(--accent-hover) !important;
+    text-decoration: none;
+}
+
+.news-on-explore .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.news-on-explore .news-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-on-explore .news-card-summary {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+}
+
+.news-on-explore .news-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: auto;
+}
+.news-on-explore .news-card-footer span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.news-on-explore .news-card-time {
+    color: var(--text-muted);
+}
+
+.news-on-explore .news-card-upvotes {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.news-source-hackernews {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #ff6600;
+    color: #fff;
+    width: fit-content;
+}
+.news-source-devto {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #3b49df;
+    color: #fff;
+    width: fit-content;
+}
+.news-source-reddit {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #ff4500;
+    color: #fff;
+    width: fit-content;
+}
+.news-source-default {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--accent);
+    color: #fff;
+    width: fit-content;
+}
+
 /* Toggle Switch */
 .toggle-switch {
     position: relative;
