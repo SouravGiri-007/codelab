@@ -17,6 +17,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('CODELAB_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'codelab.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 
     # Session & Security
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)

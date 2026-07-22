@@ -9,8 +9,8 @@ from app.models import NewsArticle
 
 logger = logging.getLogger(__name__)
 
-# User-Agent for Reddit (required)
-USER_AGENT = 'CodeLab/1.0 (news bot; +http://localhost:5000)'
+# Realistic browser User-Agent to avoid being blocked by API providers
+USER_AGENT = 'Mozilla/5.0 (compatible; CodeLabNewsBot/1.0; +https://github.com/CodeLab)'
 
 
 async def fetch_hacker_news(max_items=10):
@@ -141,7 +141,7 @@ async def fetch_reddit(max_items=10):
                 })
 
         except Exception as e:
-            logger.error(f"Failed to fetch Reddit: {e}")
+            logger.warning(f"Reddit fetch failed (non-critical): {e}")
 
     return articles
 
@@ -166,9 +166,15 @@ async def fetch_all_news():
 def deduplicate_articles(articles):
     """Remove articles with URLs already in the database."""
     new_articles = []
-    existing_urls = set(
-        url for (url,) in db.session.query(NewsArticle.source_url).all()
-    )
+    try:
+        existing_urls = set(
+            url for (url,) in db.session.query(NewsArticle.source_url).all()
+        )
+    except Exception as e:
+        logger.warning(f"Could not query existing URLs (connection issue?): {e}")
+        db.session.rollback()
+        # If DB is unavailable, accept all articles as new
+        return articles
 
     for article in articles:
         if article['source_url'] not in existing_urls:
