@@ -46,6 +46,8 @@ def language_label(lang_key, supported_languages):
 def time_ago(dt):
     """Return a human-readable 'time ago' string."""
     from datetime import datetime, timezone
+    if dt is None:
+        return 'unknown'
     now = datetime.now(timezone.utc)
     # Handle naive datetimes (SQLite) by assuming UTC
     if dt.tzinfo is None:
