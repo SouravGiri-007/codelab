@@ -1,0 +1,41 @@
+<div class="snippet-card" data-language="{{ snippet.language }}">
+    <div class="snippet-card-header">
+        <div class="snippet-lang-badge lang-{{ snippet.language }}">{{ language_label(snippet.language, supported_languages) }}</div>
+        {% if not snippet.is_public %}
+            <span class="badge badge-private">Private</span>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('main.view_snippet', id=snippet.id) }}" class="snippet-card-title">
+        {{ snippet.title }}
+    </a>
+    <p class="snippet-card-desc">{{ snippet.description[:150] if snippet.description else snippet.body[:150] ~ '...' }}</p>
+    <div class="snippet-card-tags">
+        {% for tag in snippet.tags[:3] %}
+            <a href="{{ url_for('main.index', tag=tag.name) }}" class="tag-pill-sm">#{{ tag.name }}</a>
+        {% endfor %}
+        {% if snippet.tags|length > 3 %}
+            <span class="tag-pill-sm">+{{ snippet.tags|length - 3 }}</span>
+        {% endif %}
+    </div>
+    <div class="snippet-card-footer">
+        <a href="{{ url_for('auth.profile', username=snippet.author.username) }}" class="author-link">
+            <span class="author-avatar">{{ snippet.author.username[0]|upper }}</span>
+            {{ snippet.author.username }}
+        </a>
+        <div class="snippet-stats">
+            <span title="Likes">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                {{ snippet.like_count }}
+            </span>
+            <span title="Comments">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {{ snippet.comment_count }}
+            </span>
+            <span class="time-ago">{{ time_ago(snippet.created_at) }}</span>
+        </div>
+    </div>
+</div>

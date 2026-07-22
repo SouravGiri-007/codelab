@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}My Snippets - CodeLab{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>My Snippets</h1>
+        <a href="{{ url_for('main.new_snippet') }}" class="btn btn-primary">+ New Snippet</a>
+    </div>
+
+    {% if snippets.items %}
+    <div class="snippet-grid">
+        {% for snippet in snippets.items %}
+        {% include 'partials/snippet_card.html' %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>You haven't created any snippets yet</h3>
+        <p>Start sharing your code with the community!</p>
+        <a href="{{ url_for('main.new_snippet') }}" class="btn btn-primary">Create Your First Snippet</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

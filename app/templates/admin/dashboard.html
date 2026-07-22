@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — CodeLab{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 style="margin:0;">Admin Dashboard</h1>
+        <p class="text-secondary" style="margin:4px 0 0;">Manage CodeLab features and content</p>
+    </div>
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link active">Dashboard</a>
+        <a href="{{ url_for('admin.news_management') }}" class="admin-nav-link">News</a>
+        <a href="{{ url_for('admin.subscriptions') }}" class="admin-nav-link">Subscribers</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-link">Users</a>
+        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link">Settings</a>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_users }}</div>
+        <div class="stat-label">Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_snippets }}</div>
+        <div class="stat-label">Snippets</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.published_news }}</div>
+        <div class="stat-label">News Articles</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_subscribers }}</div>
+        <div class="stat-label">Subscribers</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_chat_messages }}</div>
+        <div class="stat-label">Chat Messages</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_likes }}</div>
+        <div class="stat-label">Likes</div>
+    </div>
+</div>
+
+<!-- Feature Status & Recent Activity -->
+<div class="admin-grid">
+    <!-- Feature Toggles -->
+    <div class="card">
+        <h3 class="card-title">Feature Status</h3>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div>
+                    <strong>AI Chat Assistant</strong>
+                    <p class="text-sm text-secondary">Users can chat with AI for coding help</p>
+                </div>
+                <span class="status-badge {{ 'status-on' if features.ai_chat_enabled else 'status-off' }}">
+                    {{ 'ON' if features.ai_chat_enabled else 'OFF' }}
+                </span>
+            </div>
+            <div class="feature-item">
+                <div>
+                    <strong>News Aggregation</strong>
+                    <p class="text-sm text-secondary">Auto-fetch news from HN, Dev.to, Reddit</p>
+                </div>
+                <span class="status-badge {{ 'status-on' if features.news_enabled else 'status-off' }}">
+                    {{ 'ON' if features.news_enabled else 'OFF' }}
+                </span>
+            </div>
+            <div class="feature-item">
+                <div>
+                    <strong>Email Delivery</strong>
+                    <p class="text-sm text-secondary">Send news to subscribers via email</p>
+                </div>
+                <span class="status-badge {{ 'status-on' if features.email_enabled else 'status-off' }}">
+                    {{ 'ON' if features.email_enabled else 'OFF' }}
+                </span>
+            </div>
+            <div class="feature-item">
+                <div>
+                    <strong>News Fetch Interval</strong>
+                    <p class="text-sm text-secondary">How often to check for new articles</p>
+                </div>
+                <span class="status-badge">Every {{ features.news_fetch_interval }}h</span>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary btn-sm" style="margin-top:16px;">Manage Settings</a>
+    </div>
+
+    <!-- Recent News -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 class="card-title">Recent News</h3>
+            <a href="{{ url_for('admin.news_management') }}" class="text-sm" style="color:var(--accent);">View all</a>
+        </div>
+        {% if recent_news %}
+            <div class="admin-list">
+                {% for article in recent_news %}
+                <div class="admin-list-item">
+                    <div>
+                        <span class="source-badge source-{{ article.source }}" style="font-size:0.7rem;">
+                            {% if article.source == 'hackernews' %}HN
+                            {% elif article.source == 'devto' %}DEV
+                            {% else %}RED{% endif %}
+                        </span>
+                        <span class="text-sm" style="margin-left:6px;">{{ article.title[:60] }}{% if article.title|length > 60 %}...{% endif %}</span>
+                    </div>
+                    <span class="status-badge {{ 'status-on' if article.is_published else 'status-off' }}">
+                        {{ 'Live' if article.is_published else 'Draft' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-secondary text-sm">No news articles yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Users -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 class="card-title">Recent Users</h3>
+            <a href="{{ url_for('admin.users') }}" class="text-sm" style="color:var(--accent);">View all</a>
+        </div>
+        {% if recent_users %}
+            <div class="admin-list">
+                {% for user in recent_users %}
+                <div class="admin-list-item">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;">
+                            {{ user.username[0]|upper }}
+                        </div>
+                        <div>
+                            <span class="text-sm" style="font-weight:500;">{{ user.username }}</span>
+                            {% if user.is_admin %}<span class="badge" style="margin-left:4px;font-size:0.65rem;">Admin</span>{% endif %}
+                        </div>
+                    </div>
+                    <span class="text-muted text-sm">{{ user.created_at | time_ago }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-secondary text-sm">No users yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

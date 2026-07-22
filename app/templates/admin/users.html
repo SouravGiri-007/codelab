@@ -1,0 +1,90 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Users — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 style="margin:0;">Users</h1>
+        <p class="text-secondary" style="margin:4px 0 0;">Manage user accounts and admin access</p>
+    </div>
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">Dashboard</a>
+        <a href="{{ url_for('admin.news_management') }}" class="admin-nav-link">News</a>
+        <a href="{{ url_for('admin.subscriptions') }}" class="admin-nav-link">Subscribers</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-link active">Users</a>
+        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link">Settings</a>
+    </div>
+</div>
+
+<div class="card">
+    {% if users.items %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Snippets</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users.items %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;">
+                                {{ user.username[0]|upper }}
+                            </div>
+                            <a href="{{ url_for('auth.profile', username=user.username) }}" style="font-weight:500;color:var(--text-primary);text-decoration:none;">
+                                {{ user.username }}
+                            </a>
+                        </div>
+                    </td>
+                    <td class="text-sm text-secondary">{{ user.email }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="badge" style="background:var(--accent);color:#fff;">Admin</span>
+                        {% else %}
+                            <span class="badge" style="background:var(--bg-secondary);color:var(--text-secondary);">User</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.snippet_count }}</td>
+                    <td class="text-sm text-muted">{{ user.created_at | time_ago }}</td>
+                    <td>
+                        {% if user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin.toggle_admin', id=user.id) }}" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                            <button type="submit" class="btn btn-sm btn-secondary">
+                                {{ 'Remove Admin' if user.is_admin else 'Make Admin' }}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if users.pages > 1 %}
+    <div class="pagination" style="margin-top:16px;">
+        {% if users.has_prev %}
+            <a href="{{ url_for('admin.users', page=users.prev_num) }}" class="pagination-link">&laquo; Prev</a>
+        {% endif %}
+        <span class="pagination-info">Page {{ users.page }} of {{ users.pages }}</span>
+        {% if users.has_next %}
+            <a href="{{ url_for('admin.users', page=users.next_num) }}" class="pagination-link">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state" style="padding:40px;text-align:center;">
+        <p class="text-secondary">No users found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

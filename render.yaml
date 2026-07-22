@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: codelab
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --worker-class sync --timeout 120 --access-logfile -
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: CODELAB_DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

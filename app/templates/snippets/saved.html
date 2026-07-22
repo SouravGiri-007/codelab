@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Saved Snippets - CodeLab{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Saved Snippets</h1>
+    </div>
+
+    {% if snippets.items %}
+    <div class="snippet-grid">
+        {% for saved in snippets.items %}
+        {% with snippet=saved.snippet %}
+        {% include 'partials/snippet_card.html' %}
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No saved snippets</h3>
+        <p>Click the bookmark icon on any snippet to save it here for quick access.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

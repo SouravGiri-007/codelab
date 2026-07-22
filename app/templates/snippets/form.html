@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Snippet' if mode == 'edit' else 'New Snippet' }} - CodeLab{% endblock %}
+
+{% block extra_head %}
+<style>
+    .editor-layout { display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    .editor-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--text-primary); font-size: 0.875rem; }
+    .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg-card); color: var(--text-primary); transition: border-color 0.2s; box-sizing: border-box; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+    .form-textarea { font-family: 'JetBrains Mono', 'Fira Code', monospace; resize: vertical; min-height: 300px; line-height: 1.6; }
+    .form-select { cursor: pointer; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-check { display: flex; align-items: center; gap: 8px; }
+    .form-check input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .form-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+    .form-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .form-error { color: #ef4444; font-size: 0.8rem; margin-top: 4px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-layout">
+    <h1 class="editor-title">{{ 'Edit Snippet' if mode == 'edit' else 'New Snippet' }}</h1>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.title.label }}
+            {{ form.title(class='form-input', placeholder='e.g. Python Quick Sort Implementation') }}
+            {% if form.title.errors %}<div class="form-error">{{ form.title.errors[0] }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                {{ form.language.label }}
+                {{ form.language(class='form-select') }}
+            </div>
+            <div class="form-group">
+                {{ form.tags.label }}
+                {{ form.tags(class='form-input', placeholder='e.g. sorting, algorithm, python') }}
+                <p class="form-hint">Comma-separated, max 30 chars each</p>
+            </div>
+        </div>
+
+        <div class="form-group">
+            {{ form.body.label }}
+            {{ form.body(class='form-textarea', placeholder='Paste or type your code here...') }}
+            {% if form.body.errors %}<div class="form-error">{{ form.body.errors[0] }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.description.label }}
+            {{ form.description(class='form-textarea', placeholder='Describe what this code does...', rows=3, style='font-family: inherit; min-height: 80px;') }}
+        </div>
+
+        <div class="form-group">
+            <div class="form-check">
+                {{ form.is_public() }} {{ form.is_public.label.text }}
+            </div>
+            <p class="form-hint">Private snippets are only visible to you</p>
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(class='btn btn-primary') }}
+            <a href="{% if mode == 'edit' and snippet %}{{ url_for('main.view_snippet', id=snippet.id) }}{% else %}{{ url_for('main.index') }}{% endif %}"
+               class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

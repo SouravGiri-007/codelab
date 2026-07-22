@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CodeLab{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('main.index') }}" class="nav-brand">
+                <span class="brand-icon">&lt;/&gt;</span> CodeLab
+            </a>
+            <div class="nav-search">
+                <form action="{{ url_for('main.index') }}" method="get" class="search-form">
+                    <input type="text" name="q" placeholder="Search snippets..." 
+                           value="{{ search or '' }}" class="search-input">
+                    <button type="submit" class="search-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('main.index') }}" class="nav-link">Explore</a>
+                <a href="{{ url_for('news.news_list') }}" class="nav-link">News</a>
+                <a href="{{ url_for('chat.chat_page') }}" class="nav-link">AI Chat</a>
+                <a href="{{ url_for('main.playground') }}" class="nav-link">Playground</a>
+                <a href="{{ url_for('main.tags') }}" class="nav-link">Tags</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.new_snippet') }}" class="nav-btn nav-btn-primary">+ New</a>
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="nav-link" title="Admin">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.saved_snippets') }}" class="nav-link" title="Saved">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </a>
+                    <div class="nav-dropdown">
+                        <button class="nav-avatar" aria-label="Menu">
+                            {{ current_user.username[0]|upper }}
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="{{ url_for('auth.profile', username=current_user.username) }}">My Profile</a>
+                            <a href="{{ url_for('main.my_snippets') }}">My Snippets</a>
+                            <a href="{{ url_for('chat.chat_page') }}">AI Chat</a>
+                            <a href="{{ url_for('auth.settings') }}">Settings</a>
+                            {% if current_user.is_admin %}
+                                <hr>
+                                <a href="{{ url_for('admin.dashboard') }}">Admin Panel</a>
+                            {% endif %}
+                            <hr>
+                            <a href="{{ url_for('auth.logout') }}" class="text-danger">Sign Out</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Sign In</a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-btn nav-btn-primary">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 CodeLab &mdash; Code Snippet Sharing & AI Playground</p>
+           <div class="footer-links">
+    <a href="{{ url_for('news.news_list') }}">News</a>
+    <a href="{{ url_for('subscribe.subscribe') }}">Newsletter</a>
+    <a href="mailto:souravgiri.dev@gmail.com">Contact</a>
+    <a href="https://github.com/SouravGiri-007" target="_blank">GitHub</a>
+</div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

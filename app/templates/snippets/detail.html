@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ snippet.title }} - CodeLab{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* We inject pygments CSS dynamically to avoid bundling it */
+    {{ get_pygments_css()|safe if get_pygments_css is defined else '' }}
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="snippet-detail">
+    <div class="snippet-detail-header">
+        <div class="snippet-detail-badges">
+            <span class="snippet-lang-badge lang-{{ snippet.language }}">{{ language_label(snippet.language, supported_languages) }}</span>
+            {% if not snippet.is_public %}
+                <span class="badge badge-private">Private</span>
+            {% endif %}
+            {% if snippet.is_playground %}
+                <span class="badge badge-playground">Playground</span>
+            {% endif %}
+        </div>
+        <h1 class="snippet-detail-title">{{ snippet.title }}</h1>
+        <div class="snippet-detail-meta">
+            <a href="{{ url_for('auth.profile', username=snippet.author.username) }}" class="author-link">
+                <span class="author-avatar">{{ snippet.author.username[0]|upper }}</span>
+                {{ snippet.author.username }}
+            </a>
+            <span class="meta-sep">&middot;</span>
+            <span class="time-ago">{{ time_ago(snippet.created_at) }}</span>
+            {% if snippet.updated_at != snippet.created_at %}
+                <span class="meta-sep">&middot;</span>
+                <span class="text-muted">edited {{ time_ago(snippet.updated_at) }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        {% if current_user.is_authenticated %}
+        <div class="snippet-actions">
+            <form method="POST" action="{{ url_for('main.toggle_like', id=snippet.id) }}" class="inline-form">
+                <button type="submit" class="action-btn {% if is_liked %}liked{% endif %}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="{% if is_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    {{ snippet.like_count }}
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('main.toggle_save', id=snippet.id) }}" class="inline-form">
+                <button type="submit" class="action-btn {% if is_saved %}saved{% endif %}" title="Save">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="{% if is_saved %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2">
+                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {{ 'Saved' if is_saved else 'Save' }}
+                </button>
+            </form>
+            {% if snippet.author.id == current_user.id %}
+                <a href="{{ url_for('main.edit_snippet', id=snippet.id) }}" class="action-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('main.delete_snippet', id=snippet.id) }}"
+                      class="inline-form" onsubmit="return confirm('Delete this snippet? This cannot be undone.')">
+                    <button type="submit" class="action-btn text-danger">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Description -->
+    {% if snippet.description %}
+    <div class="snippet-description">
+        <p>{{ snippet.description|nl2br }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Tags -->
+    {% if snippet.tags %}
+    <div class="snippet-tags">
+        {% for tag in snippet.tags %}
+            <a href="{{ url_for('main.index', tag=tag.name) }}" class="tag-pill">#{{ tag.name }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Code Block -->
+    <div class="code-block">
+        <div class="code-block-header">
+            <span>{{ language_label(snippet.language, supported_languages) }}</span>
+            <button onclick="copyCode(this)" class="copy-btn" title="Copy code">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy
+            </button>
+        </div>
+        <div class="code-block-body">
+            <pre><code>{{ snippet.body|highlight(snippet.language)|safe }}</code></pre>
+        </div>
+    </div>
+
+    <!-- Raw Code (for copy) -->
+    <textarea id="raw-code" style="display:none;">{{ snippet.body }}</textarea>
+
+    <!-- Comments Section -->
+    <section class="comments-section">
+        <h2 class="comments-title">Comments ({{ snippet.comment_count }})</h2>
+
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('main.add_comment', id=snippet.id) }}" class="comment-form">
+            {{ comment_form.hidden_tag() }}
+            {{ comment_form.body(class='form-textarea', placeholder='Write a comment...', rows=3) }}
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+        {% else %}
+        <p class="text-muted"> <a href="{{ url_for('auth.login') }}">Sign in</a> to leave a comment.</p>
+        {% endif %}
+
+        <div class="comments-list">
+            {% for comment in snippet.comments %}
+            <div class="comment-item">
+                <div class="comment-header">
+                    <a href="{{ url_for('auth.profile', username=comment.author.username) }}" class="author-link">
+                        <span class="author-avatar small">{{ comment.author.username[0]|upper }}</span>
+                        {{ comment.author.username }}
+                    </a>
+                    <span class="time-ago">{{ time_ago(comment.created_at) }}</span>
+                    {% if comment.author.id == current_user.id %}
+                        <form method="POST" action="{{ url_for('main.delete_comment', id=comment.id) }}"
+                              class="inline-form" onsubmit="return confirm('Delete this comment?')">
+                            <button type="submit" class="text-danger btn-link-sm">delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="comment-body">{{ comment.body|nl2br }}</div>
+            </div>
+            {% else %}
+            <p class="text-muted">No comments yet. Be the first to share your thoughts!</p>
+            {% endfor %}
+        </div>
+    </section>
+</article>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyCode(btn) {
+    const raw = document.getElementById('raw-code').value;
+    navigator.clipboard.writeText(raw).then(() => {
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(() => {
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

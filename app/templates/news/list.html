@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Tech News — CodeLab{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1>Tech News</h1>
+        <p class="text-secondary">Latest coding news from Hacker News, Dev.to & Reddit</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{{ url_for('subscribe.subscribe') }}" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Subscribe via Email
+        </a>
+    </div>
+</div>
+
+<div class="news-layout">
+    <!-- Sidebar filters -->
+    <aside class="news-sidebar">
+        <div class="card">
+            <h3 class="card-title">Sources</h3>
+            <div class="source-list">
+                <a href="{{ url_for('news.news_list') }}" class="source-link {{ 'active' if not source else '' }}">
+                    All Sources
+                    <span class="badge">{{ total_articles }}</span>
+                </a>
+                <a href="{{ url_for('news.news_list', source='hackernews') }}" class="source-link {{ 'active' if source == 'hackernews' else '' }}">
+                    Hacker News
+                    <span class="badge badge-hn">{{ source_counts.get('hackernews', 0) }}</span>
+                </a>
+                <a href="{{ url_for('news.news_list', source='devto') }}" class="source-link {{ 'active' if source == 'devto' else '' }}">
+                    Dev.to
+                    <span class="badge badge-devto">{{ source_counts.get('devto', 0) }}</span>
+                </a>
+                <a href="{{ url_for('news.news_list', source='reddit') }}" class="source-link {{ 'active' if source == 'reddit' else '' }}">
+                    Reddit
+                    <span class="badge badge-reddit">{{ source_counts.get('reddit', 0) }}</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+            <h3 class="card-title">Sort By</h3>
+            <div class="source-list">
+                <a href="{{ url_for('news.news_list', source=source, sort='newest') }}" class="source-link {{ 'active' if sort == 'newest' else '' }}">Newest</a>
+                <a href="{{ url_for('news.news_list', source=source, sort='popular') }}" class="source-link {{ 'active' if sort == 'popular' else '' }}">Most Upvoted</a>
+            </div>
+        </div>
+
+        <!-- Subscribe card -->
+        <div class="card" style="margin-top:16px; background: var(--accent-light);">
+            <h3 class="card-title">Stay Updated</h3>
+            <p class="text-sm text-secondary">Get the latest tech news delivered to your inbox.</p>
+            <a href="{{ url_for('subscribe.subscribe') }}" class="btn btn-primary btn-sm" style="width:100%; margin-top:8px;">Subscribe Free</a>
+        </div>
+    </aside>
+
+    <!-- News list -->
+    <div class="news-main">
+        {% if articles.items %}
+            {% for article in articles.items %}
+            <a href="{{ url_for('news.news_detail', id=article.id) }}" class="news-card">
+                <div class="news-card-header">
+                    <span class="source-badge source-{{ article.source }}">
+                        {% if article.source == 'hackernews' %}HN
+                        {% elif article.source == 'devto' %}DEV
+                        {% else %}RED{% endif %}
+                    </span>
+                    <span class="text-muted text-sm">{{ article.fetched_at | time_ago }}</span>
+                </div>
+                <h2 class="news-card-title">{{ article.title }}</h2>
+                {% if article.summary %}
+                    <p class="news-card-summary">{{ article.summary | nl2br }}</p>
+                {% endif %}
+                <div class="news-card-footer">
+                    <span class="text-sm text-secondary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                        {{ article.upvotes }}
+                    </span>
+                    <span class="text-sm text-secondary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {{ article.comment_count }}
+                    </span>
+                    <span class="text-sm text-muted">Read more →</span>
+                </div>
+            </a>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if articles.pages > 1 %}
+            <div class="pagination">
+                {% if articles.has_prev %}
+                    <a href="{{ url_for('news.news_list', page=articles.prev_num, source=source, sort=sort) }}" class="pagination-link">&laquo; Prev</a>
+                {% endif %}
+                <span class="pagination-info">Page {{ articles.page }} of {{ articles.pages }}</span>
+                {% if articles.has_next %}
+                    <a href="{{ url_for('news.news_list', page=articles.next_num, source=source, sort=sort) }}" class="pagination-link">Next &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                <h3>No news yet</h3>
+                <p>News articles will appear here once the AI fetches them.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

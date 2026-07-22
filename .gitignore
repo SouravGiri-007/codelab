@@ -1,0 +1,11 @@
+*.pyc
+__pycache__/
+*.db
+.env
+.venv/
+venv/
+mvenv/
+instance/
+.freebuff/
+CODE_REVIEW.md
+*.log

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Tags - CodeLab{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>All Tags</h1>
+    <div class="tag-cloud-large">
+        {% for tag in tags %}
+        <a href="{{ url_for('main.index', tag=tag.name) }}" class="tag-pill-lg">
+            #{{ tag.name }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

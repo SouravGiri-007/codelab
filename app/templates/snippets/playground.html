@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Playground - CodeLab{% endblock %}
+
+{% block extra_head %}
+<style>
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; height: calc(100vh - 130px); max-width: 1400px; margin: 0 auto; }
+    .playground-left, .playground-right { display: flex; flex-direction: column; min-height: 0; }
+    .pg-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px 10px 0 0; }
+    .pg-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }
+    .pg-select { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.85rem; cursor: pointer; }
+    .pg-editor { flex: 1; padding: 16px; background: #1e1e2e; border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; overflow: auto; }
+    .pg-editor textarea { width: 100%; height: 100%; border: none; background: transparent; color: #cdd6f4; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.7; resize: none; outline: none; tab-size: 4; }
+    .pg-output { flex: 1; padding: 16px; background: var(--bg-card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; overflow: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap; word-break: break-word; }
+    .pg-output:empty::before { content: 'Output will appear here...'; color: var(--text-muted); font-style: italic; }
+    .pg-actions { display: flex; gap: 8px; }
+    .pg-btn { padding: 6px 14px; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .pg-btn-run { background: #22c55e; color: white; }
+    .pg-btn-run:hover { background: #16a34a; }
+    .pg-btn-save { background: var(--accent); color: white; }
+    .pg-btn-save:hover { opacity: 0.9; }
+    .pg-btn-clear { background: var(--border); color: var(--text-primary); }
+    @media (max-width: 768px) { .playground { grid-template-columns: 1fr; height: auto; } .pg-editor textarea { min-height: 300px; } .pg-output { min-height: 200px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="playground">
+    <div class="playground-left">
+        <div class="pg-header">
+            <h3>Editor</h3>
+            <div class="pg-actions">
+                <select id="pg-lang" class="pg-select">
+                    {% for key, label in supported_languages %}
+                    <option value="{{ key }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="runCode()" class="pg-btn pg-btn-run">Run</button>
+                <button onclick="clearOutput()" class="pg-btn pg-btn-clear">Clear</button>
+                {% if current_user.is_authenticated %}
+                <button onclick="saveFromPlayground()" class="pg-btn pg-btn-save">Save as Snippet</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="pg-editor">
+            <textarea id="pg-code" spellcheck="false" placeholder="// Write your code here...&#10;// Use Tab key for indentation&#10;//&#10;function hello() {&#10;    console.log('Hello, CodeLab!');&#10;}&#10;&#10;hello();">{{ playground_code }}</textarea>
+        </div>
+    </div>
+
+    <div class="playground-right">
+        <div class="pg-header">
+            <h3>Output</h3>
+            <span id="run-time" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+        </div>
+        <div class="pg-output" id="pg-output"></div>
+    </div>
+</div>
+
+<!-- Save Modal -->
+<div id="save-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:none; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card); border-radius:12px; padding:24px; width:90%; max-width:480px; border:1px solid var(--border);">
+        <h2 style="margin-bottom:16px;">Save as Snippet</h2>
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.875rem;">Title</label>
+            <input type="text" id="save-title" class="form-input" placeholder="Snippet title" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);">
+        </div>
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.875rem;">Tags</label>
+            <input type="text" id="save-tags" class="form-input" placeholder="e.g. test, demo" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);">
+        </div>
+        <div style="margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;cursor:pointer;">
+                <input type="checkbox" id="save-public" checked style="accent-color:var(--accent);"> Public
+            </label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="closeSaveModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="doSave()" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const codeArea = document.getElementById('pg-code');
+const outputArea = document.getElementById('pg-output');
+
+// Tab key support
+codeArea.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 4;
+    }
+});
+
+function runCode() {
+    const code = codeArea.value;
+    const lang = document.getElementById('pg-lang').value;
+    outputArea.textContent = '';
+    const start = performance.now();
+
+    if (lang === 'javascript') {
+        // Capture console.log output
+        const logs = [];
+        const origLog = console.log;
+        const origWarn = console.warn;
+        const origError = console.error;
+        console.log = (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' '));
+        console.warn = console.log;
+        console.error = console.log;
+
+        try {
+            const result = eval(code);
+            if (result !== undefined) logs.push('→ ' + String(result));
+        } catch (err) {
+            logs.push('❌ ' + err.message);
+        }
+
+        console.log = origLog;
+        console.warn = origWarn;
+        console.error = origError;
+        outputArea.textContent = logs.join('\n') || '(no output)';
+    } else if (lang === 'html') {
+        outputArea.innerHTML = '<iframe srcdoc="' + code.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border:none;min-height:300px;"></iframe>';
+    } else {
+        outputArea.textContent = `⚠️ Live execution is only supported for JavaScript and HTML.\n\nFor ${lang}, use the "Save as Snippet" button to share your code.`;
+    }
+
+    const elapsed = (performance.now() - start).toFixed(1);
+    document.getElementById('run-time').textContent = `${elapsed}ms`;
+}
+
+function clearOutput() {
+    outputArea.textContent = '';
+    document.getElementById('run-time').textContent = '';
+}
+
+function saveFromPlayground() {
+    document.getElementById('save-modal').style.display = 'flex';
+    document.getElementById('save-title').focus();
+}
+
+function closeSaveModal() {
+    document.getElementById('save-modal').style.display = 'none';
+}
+
+function doSave() {
+    const title = document.getElementById('save-title').value.trim();
+    if (!title) { alert('Please enter a title.'); return; }
+
+    fetch('{{ url_for("api.create_snippet") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            title: title,
+            body: codeArea.value,
+            language: document.getElementById('pg-lang').value,
+            description: '',
+            tags: document.getElementById('save-tags').value,
+            is_public: document.getElementById('save-public').checked
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.id) {
+            window.location.href = '/snippet/' + data.id;
+        } else {
+            alert('Error: ' + (data.error || 'Could not save'));
+        }
+    })
+    .catch(err => alert('Network error: ' + err.message));
+}
+
+// Ctrl+Enter to run
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runCode();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Subscribers — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 style="margin:0;">Newsletter Subscribers</h1>
+        <p class="text-secondary" style="margin:4px 0 0;">Manage email subscriptions</p>
+    </div>
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">Dashboard</a>
+        <a href="{{ url_for('admin.news_management') }}" class="admin-nav-link">News</a>
+        <a href="{{ url_for('admin.subscriptions') }}" class="admin-nav-link active">Subscribers</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-link">Users</a>
+        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link">Settings</a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+    <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('admin.subscriptions') }}" class="btn btn-sm {{ 'btn-primary' if not show_inactive else 'btn-secondary' }}">Active</a>
+        <a href="{{ url_for('admin.subscriptions', all='1') }}" class="btn btn-sm {{ 'btn-primary' if show_inactive else 'btn-secondary' }}">All (incl. inactive)</a>
+    </div>
+</div>
+
+<div class="card">
+    {% if subscriptions.items %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Subscribed</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscriptions.items %}
+                <tr>
+                    <td style="font-family:var(--font-mono);font-size:0.9rem;">{{ sub.email }}</td>
+                    <td>
+                        <span class="status-badge {{ 'status-on' if sub.is_active else 'status-off' }}">
+                            {{ 'Active' if sub.is_active else 'Inactive' }}
+                        </span>
+                    </td>
+                    <td class="text-sm text-muted">{{ sub.subscribed_at | time_ago }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_subscription', id=sub.id) }}" style="display:inline;"
+                              onsubmit="return confirm('Delete this subscription?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if subscriptions.pages > 1 %}
+    <div class="pagination" style="margin-top:16px;">
+        {% if subscriptions.has_prev %}
+            <a href="{{ url_for('admin.subscriptions', page=subscriptions.prev_num, all='1' if show_inactive else '') }}" class="pagination-link">&laquo; Prev</a>
+        {% endif %}
+        <span class="pagination-info">Page {{ subscriptions.page }} of {{ subscriptions.pages }}</span>
+        {% if subscriptions.has_next %}
+            <a href="{{ url_for('admin.subscriptions', page=subscriptions.next_num, all='1' if show_inactive else '') }}" class="pagination-link">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state" style="padding:40px;text-align:center;">
+        <p class="text-secondary">No subscribers yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

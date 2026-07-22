@@ -1,0 +1,120 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Settings — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 style="margin:0;">Admin Settings</h1>
+        <p class="text-secondary" style="margin:4px 0 0;">Configure AI, news, and email features</p>
+    </div>
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">Dashboard</a>
+        <a href="{{ url_for('admin.news_management') }}" class="admin-nav-link">News</a>
+        <a href="{{ url_for('admin.subscriptions') }}" class="admin-nav-link">Subscribers</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-link">Users</a>
+        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link active">Settings</a>
+    </div>
+</div>
+
+<!-- Feature Toggles -->
+<div class="card" style="margin-bottom:20px;">
+    <h3 class="card-title">Feature Toggles</h3>
+    <p class="text-secondary text-sm" style="margin-bottom:16px;">Enable or disable CodeLab features.</p>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+
+        <div class="setting-row">
+            <div>
+                <strong>AI Chat Assistant</strong>
+                <p class="text-sm text-secondary">Allow users to chat with AI for coding help and snippet generation.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="ai_chat_enabled" {{ 'checked' if ai_chat else '' }}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <strong>News Aggregation</strong>
+                <p class="text-sm text-secondary">Automatically fetch and post tech news from external sources.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="news_enabled" {{ 'checked' if news_enabled else '' }}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <strong>Email News Delivery</strong>
+                <p class="text-sm text-secondary">Send news digest to email subscribers via Resend.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="email_enabled" {{ 'checked' if email_enabled else '' }}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <strong>News Fetch Interval</strong>
+                <p class="text-sm text-secondary">How often (in hours) to check for new articles.</p>
+            </div>
+            <input type="number" name="news_fetch_interval" value="{{ fetch_interval }}" min="1" max="24"
+                   style="width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-secondary);color:var(--text-primary);">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-top:16px;">Save Settings</button>
+    </form>
+</div>
+
+<!-- API Keys Info -->
+<div class="card">
+    <h3 class="card-title">API Keys (Config File)</h3>
+    <p class="text-secondary text-sm" style="margin-bottom:16px;">
+        Change API keys in <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">app/config.py</code> and restart the server.
+    </p>
+    <div class="setting-row">
+        <div>
+            <strong>Groq API Key</strong>
+            <p class="text-sm text-muted">Used for AI chat and news summarization</p>
+        </div>
+        <code class="text-sm" style="color:var(--text-secondary);">
+            {% if config.GROQ_API_KEY %}
+                {{ config.GROQ_API_KEY[:15] }}...{{ config.GROQ_API_KEY[-4:] }}
+            {% else %}
+                <span style="color:var(--error);">Not set</span>
+            {% endif %}
+        </code>
+    </div>
+    <div class="setting-row">
+        <div>
+            <strong>Resend API Key</strong>
+            <p class="text-sm text-muted">Used for email newsletter delivery</p>
+        </div>
+        <code class="text-sm" style="color:var(--text-secondary);">
+            {% if config.RESEND_API_KEY is defined and config.RESEND_API_KEY %}
+                {{ config.RESEND_API_KEY[:10] }}...{{ config.RESEND_API_KEY[-4:] }}
+            {% else %}
+                <span style="color:var(--error);">Not configured</span>
+            {% endif %}
+        </code>
+    </div>
+    <div class="setting-row">
+        <div>
+            <strong>Default Chat Model</strong>
+            <p class="text-sm text-muted">AI model for chat responses</p>
+        </div>
+        <code class="text-sm" style="color:var(--text-secondary);">{{ config.DEFAULT_CHAT_MODEL }}</code>
+    </div>
+    <div class="setting-row">
+        <div>
+            <strong>News Model</strong>
+            <p class="text-sm text-muted">AI model for news summarization</p>
+        </div>
+        <code class="text-sm" style="color:var(--text-secondary);">{{ config.NEWS_MODEL }}</code>
+    </div>
+</div>
+{% endblock %}

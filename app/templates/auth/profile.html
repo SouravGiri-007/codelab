@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - CodeLab{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <div class="profile-avatar-lg">{{ user.username[0]|upper }}</div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            {% if user.bio %}<p class="profile-bio">{{ user.bio }}</p>{% endif %}
+            <div class="profile-links">
+                <span>{{ user.snippet_count }} snippets</span>
+                <span>&middot;</span>
+                <span>{{ user.total_likes_received }} likes received</span>
+                {% if user.github_url %}
+                    <span>&middot;</span>
+                    <a href="{{ user.github_url }}" target="_blank" rel="noopener">GitHub</a>
+                {% endif %}
+                {% if user.website_url %}
+                    <span>&middot;</span>
+                    <a href="{{ user.website_url }}" target="_blank" rel="noopener">Website</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if snippets.items %}
+    <div class="snippet-grid">
+        {% for snippet in snippets.items %}
+        {% include 'partials/snippet_card.html' %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No public snippets yet</h3>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

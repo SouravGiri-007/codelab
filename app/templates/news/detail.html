@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} — CodeLab News{% endblock %}
+
+{% block content %}
+<div class="news-detail-page">
+    <a href="{{ url_for('news.news_list') }}" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        Back to News
+    </a>
+
+    <article class="news-detail">
+        <div class="news-detail-header">
+            <span class="source-badge source-{{ article.source }}">
+                {% if article.source == 'hackernews' %}Hacker News
+                {% elif article.source == 'devto' %}Dev.to
+                {% else %}Reddit r/programming{% endif %}
+            </span>
+            <span class="text-muted text-sm">{{ article.fetched_at | time_ago }}</span>
+        </div>
+
+        <h1>{{ article.title }}</h1>
+
+        {% if article.summary %}
+            <div class="news-detail-summary">
+                <p>{{ article.summary | nl2br }}</p>
+            </div>
+        {% endif %}
+
+        <div class="news-detail-meta">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                {{ article.upvotes }} upvotes
+            </span>
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                {{ article.comment_count }} comments
+            </span>
+        </div>
+
+        <a href="{{ article.source_url }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="margin-top:24px;">
+            Read Full Article
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+    </article>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Snippets - CodeLab{% endblock %}
+
+{% block content %}
+<div class="explore-page">
+    <div class="explore-sidebar">
+        <!-- Language Filter -->
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">Languages</h3>
+            <ul class="sidebar-list">
+                <li>
+                    <a href="{{ url_for('main.index', lang='', q=search, sort=sort) }}"
+                       class="{% if not lang %}active{% endif %}">
+                        All Languages
+                    </a>
+                </li>
+                {% for l, count in lang_counts %}
+                <li>
+                    <a href="{{ url_for('main.index', lang=l, q=search, sort=sort) }}"
+                       class="{% if lang == l %}active{% endif %}">
+                        {{ language_label(l, supported_languages) }}
+                        <span class="count">{{ count }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Popular Tags -->
+        {% if popular_tags %}
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">Popular Tags</h3>
+            <div class="tag-cloud">
+                {% for tag in popular_tags %}
+                <a href="{{ url_for('main.index', tag=tag.name, q=search) }}"
+                   class="tag-pill">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="explore-main">
+        <!-- Sort Bar -->
+        <div class="sort-bar">
+            <div class="sort-tabs">
+                <a href="{{ url_for('main.index', sort='newest', q=search, lang=lang, tag=tag) }}"
+                   class="sort-tab {% if sort == 'newest' %}active{% endif %}">Newest</a>
+                <a href="{{ url_for('main.index', sort='popular', q=search, lang=lang, tag=tag) }}"
+                   class="sort-tab {% if sort == 'popular' %}active{% endif %}">Most Liked</a>
+                <a href="{{ url_for('main.index', sort='comments', q=search, lang=lang, tag=tag) }}"
+                   class="sort-tab {% if sort == 'comments' %}active{% endif %}">Most Discussed</a>
+                <a href="{{ url_for('main.index', sort='oldest', q=search, lang=lang, tag=tag) }}"
+                   class="sort-tab {% if sort == 'oldest' %}active{% endif %}">Oldest</a>
+            </div>
+            {% if search or lang or tag %}
+            <div class="active-filters">
+                {% if search %}
+                    <span class="filter-badge">
+                        Search: "{{ search }}"
+                        <a href="{{ url_for('main.index', lang=lang, tag=tag, sort=sort) }}">&times;</a>
+                    </span>
+                {% endif %}
+                {% if lang %}
+                    <span class="filter-badge">
+                        {{ language_label(lang, supported_languages) }}
+                        <a href="{{ url_for('main.index', q=search, tag=tag, sort=sort) }}">&times;</a>
+                    </span>
+                {% endif %}
+                {% if tag %}
+                    <span class="filter-badge">
+                        #{{ tag }}
+                        <a href="{{ url_for('main.index', q=search, lang=lang, sort=sort) }}">&times;</a>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Snippet Grid -->
+        {% if snippets.items %}
+        <div class="snippet-grid">
+            {% for snippet in snippets.items %}
+            {% include 'partials/snippet_card.html' %}
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if snippets.pages > 1 %}
+        <div class="pagination">
+            {% if snippets.has_prev %}
+                <a href="{{ url_for('main.index', page=snippets.prev_num, q=search, lang=lang, tag=tag, sort=sort) }}"
+                   class="page-btn">&laquo; Prev</a>
+            {% endif %}
+            {% for p in snippets.iter_pages() %}
+                {% if p %}
+                    <a href="{{ url_for('main.index', page=p, q=search, lang=lang, tag=tag, sort=sort) }}"
+                       class="page-btn {% if p == snippets.page %}active{% endif %}">{{ p }}</a>
+                {% else %}
+                    <span class="page-btn dots">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if snippets.has_next %}
+                <a href="{{ url_for('main.index', page=snippets.next_num, q=search, lang=lang, tag=tag, sort=sort) }}"
+                   class="page-btn">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <h3>No snippets found</h3>
+            <p>Be the first to share a code snippet!</p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.new_snippet') }}" class="btn btn-primary">Create Snippet</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
