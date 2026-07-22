@@ -1,3 +1,5 @@
+import traceback
+from flask import current_app
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
 from werkzeug.exceptions import NotFound, Forbidden
 from flask_wtf.csrf import CSRFError
@@ -26,9 +28,13 @@ def forbidden_error(error):
 
 @errors.app_errorhandler(500)
 def internal_error(error):
+    current_app.logger.exception("Unhandled exception", exc_info=error)
+    traceback.print_exc()
+
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
-        return _api_error('Internal server error', 500)
-    return render_template('errors/500.html'), 500
+        return _api_error("Internal server error", 500)
+
+    return render_template("errors/500.html"), 500
 
 
 @errors.app_errorhandler(413)
