@@ -77,7 +77,12 @@ class Config:
     ]
     
     # ─── Site URL (used in emails for unsubscribe links, etc.) ────
-    SITE_URL = os.environ.get('SITE_URL', 'http://localhost:5000')
+    # Auto-detects Render's EXTERNAL_URL, else env var, else localhost
+    SITE_URL = (
+        os.environ.get('SITE_URL')
+        or os.environ.get('RENDER_EXTERNAL_URL')
+        or 'http://localhost:5000'
+    )
 
     # ─── Email (Resend — placeholder) ─────────────────────────────
     # RESEND_API_KEY is available for future use if needed.

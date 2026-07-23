@@ -4,6 +4,19 @@
 
 {% block content %}
 <div class="explore-page">
+    <!-- Mobile filter toggle button -->
+    <button class="filter-toggle-mobile" id="filterToggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="8" y1="12" x2="20" y2="12"/>
+            <line x1="12" y1="18" x2="20" y2="18"/>
+        </svg>
+        Filters
+        {% if lang or search or tag %}
+            <span class="filter-active-dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+        {% endif %}
+    </button>
+
     <div class="explore-sidebar">
         <!-- Language Filter -->
         <div class="sidebar-section">

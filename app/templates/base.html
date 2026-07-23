@@ -26,7 +26,15 @@
                     </button>
                 </form>
             </div>
-            <div class="nav-links">
+            <!-- Mobile hamburger toggle -->
+            <button class="nav-hamburger" id="hamburgerBtn" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="nav-overlay" id="navOverlay"></div>
+            <div class="nav-links" id="navLinks">
                 <a href="{{ url_for('main.index') }}" class="nav-link">Explore</a>
                 <a href="{{ url_for('news.news_list') }}" class="nav-link">News</a>
                 <a href="{{ url_for('chat.chat_page') }}" class="nav-link">AI Chat</a>
