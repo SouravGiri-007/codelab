@@ -32,8 +32,6 @@
                 <span></span>
                 <span></span>
             </button>
-
-            <div class="nav-overlay" id="navOverlay"></div>
             <div class="nav-links" id="navLinks">
                 <a href="{{ url_for('main.index') }}" class="nav-link">Explore</a>
                 <a href="{{ url_for('news.news_list') }}" class="nav-link">News</a>
@@ -76,6 +74,9 @@
             </div>
         </div>
     </nav>
+
+    <!-- Nav overlay outside <nav> to avoid any containing-block conflicts with position:fixed -->
+    <div class="nav-overlay" id="navOverlay"></div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
