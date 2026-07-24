@@ -81,6 +81,10 @@ def summarize_news(title, content, model=None):
     if not model:
         model = current_app.config.get('NEWS_MODEL', 'llama-3.1-8b-instant')
 
+    # Don't call the LLM with empty content — it produces placeholder/garbage text
+    if not content or not content.strip():
+        return ''
+
     messages = [
         {
             'role': 'system',

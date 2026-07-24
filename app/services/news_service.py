@@ -2,6 +2,7 @@
 News Service — Fetches coding/tech news from Hacker News, Dev.to, and Reddit r/programming.
 """
 import logging
+import re
 import httpx
 from flask import current_app
 from app import db
@@ -11,6 +12,30 @@ logger = logging.getLogger(__name__)
 
 # Realistic browser User-Agent to avoid being blocked by API providers
 USER_AGENT = 'Mozilla/5.0 (compatible; CodeLabNewsBot/1.0; +https://github.com/CodeLab)'
+
+
+def extract_text_from_html(html):
+    """Strip HTML tags and extract clean readable text."""
+    html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<[^>]+>', ' ', html)
+    for ent, ch in [('&nbsp;', ' '), ('&amp;', '&'), ('&lt;', '<'), ('&gt;', '>'), ('&quot;', '"'), ('&#39;', "'"), ('&apos;', "'")]:
+        text = text.replace(ent, ch)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
+async def fetch_article_content(url):
+    """Fetch and extract plain text content from an article URL."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            resp = await client.get(url, headers={'User-Agent': USER_AGENT})
+            resp.raise_for_status()
+            text = extract_text_from_html(resp.text)
+            return text[:5000]
+    except Exception as e:
+        logger.warning(f"Failed to fetch content from {url[:80]}: {e}")
+        return ''
 
 
 async def fetch_hacker_news(max_items=10):
@@ -232,7 +257,11 @@ async def run_news_fetch():
         # Summarize each article with AI
         for article in new_articles:
             try:
-                summary = summarize_news(article['title'], article.get('content', ''))
+                # Fetch article content if not already present
+                content = article.get('content', '') or ''
+                if not content.strip():
+                    content = await fetch_article_content(article['source_url'])
+                summary = summarize_news(article['title'], content)
                 if summary:
                     article['summary'] = summary
             except Exception as e:
