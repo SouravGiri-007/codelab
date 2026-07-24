@@ -4,7 +4,7 @@
 
 {% block extra_head %}
 <style>
-    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; height: calc(100vh - 130px); max-width: 1400px; margin: 0 auto; }
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; height: calc(calc(var(--vh, 1vh) * 100) - 130px); max-width: 1400px; margin: 0 auto; }
     .playground-left, .playground-right { display: flex; flex-direction: column; min-height: 0; }
     .pg-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px 10px 0 0; }
     .pg-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }

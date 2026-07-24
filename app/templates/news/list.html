@@ -17,7 +17,7 @@
 </div>
 
 <div class="news-layout">
-    <!-- Mobile news sidebar toggle -->
+    <!-- Mobile news sidebar toggle (outside grid, sits between header and layout) -->
     <button class="mobile-news-toggle" id="newsSidebarToggle">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="4" y1="6" x2="20" y2="6"/>
@@ -30,8 +30,9 @@
         {% endif %}
     </button>
 
-    <!-- Sidebar filters -->
-    <aside class="news-sidebar">
+    <div class="news-layout-inner">
+        <!-- Sidebar filters -->
+        <aside class="news-sidebar">
         <div class="card">
             <h3 class="card-title">Sources</h3>
             <div class="source-list">
@@ -121,5 +122,6 @@
             </div>
         {% endif %}
     </div>
+</div>
 </div>
 {% endblock %}
