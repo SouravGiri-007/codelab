@@ -72,24 +72,14 @@ a:hover { text-decoration: underline; }
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--bg-primary);
+    background: rgba(255,255,255,0.85);
     border-bottom: 1px solid var(--border);
     height: var(--nav-height);
-}
-
-/* Frosted glass effect via pseudo-element avoids creating a containing block
-   that would break position:fixed descendants (overlay, mobile nav panel) */
-.navbar::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    pointer-events: none;
 }
 @media (prefers-color-scheme: dark) {
-    .navbar::before { background: rgba(15,23,42,0.85); }
+    .navbar { background: rgba(15,23,42,0.85); }
 }
 
 .nav-container {
