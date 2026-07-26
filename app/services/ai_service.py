@@ -44,6 +44,7 @@ def chat_completion(messages, model=None, stream=False, max_tokens=2048):
             messages=messages,
             max_tokens=max_tokens,
             stream=stream,
+            timeout=15,
         )
 
         if stream:

@@ -11,7 +11,7 @@ from app.models import NewsArticle
 logger = logging.getLogger(__name__)
 
 # Realistic browser User-Agent to avoid being blocked by API providers
-USER_AGENT = 'Mozilla/5.0 (compatible; CodeLabNewsBot/1.0; +https://github.com/CodeLab)'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36'
 
 
 def extract_text_from_html(html):
@@ -142,7 +142,11 @@ async def fetch_reddit(max_items=10):
             resp = await client.get(
                 'https://www.reddit.com/r/programming/hot.json',
                 params={'limit': max_items},
-                headers={'User-Agent': USER_AGENT}
+                headers={
+                    'User-Agent': USER_AGENT,
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                }
             )
             resp.raise_for_status()
             data = resp.json()
